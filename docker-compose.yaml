@@ -1,0 +1,40 @@
+version: '3'
+
+volumes: 
+  db_data: {}
+  app_data: {}
+
+networks:
+  front: {}
+  back: {}
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${APP_DB_PASSWORD}
+      MYSQL_DATABASE: ${APP_DB_NAME}
+      MYSQL_USER: ${APP_DB_USER}
+      MYSQL_PASSWORD: ${APP_DB_PASSWORD}
+    networks:
+      - back
+    volumes:
+      - db_data:/var/lib/mysql
+  app:
+    image: vspanasyuk/wordpress:{###VERSION###}
+    container_name: app
+    environment: 
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: ${APP_DB_NAME}
+      WORDPRESS_DB_USER: ${APP_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${APP_DB_PASSWORD}
+    depends_on:
+      - db
+    ports:
+      - 8300:80
+    networks:
+      - front
+      - back
+    volumes:
+      - app_data:/var/www/html/wp-content
