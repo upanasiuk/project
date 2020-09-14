@@ -1,40 +1,70 @@
-version: '3'
+---
+- hosts: all
+  gather_facts: no
+  become: true
 
-volumes: 
-  db_data: {}
-  app_data: {}
+  pre_tasks:
+    - name: check host
+      shell: hostname
+      register: out
+    - name: show host
+      debug:
+        msg: "{{ out.stdout }}"
 
-networks:
-  front: {}
-  back: {}
+  tasks:
+    - name: Update docker services
+      docker_compose:
+        project_name: "{{ PROJECT_NAME }}"
+        state: present
+        definition:
+          version: '3'
+          volumes:
+            db_data: {}
+            app_data: {}
+          networks:
+            front: {}
+            back: {}
+          services:
+            db:
+              image: "mysql:{{ MYSQL_VERSION }}"
+              environment:
+                MYSQL_DATABASE: "{{ APP_DB_NAME }}"
+                MYSQL_USER: "{{ APP_DB_USER }}"
+                MYSQL_PASSWORD: "{{ APP_DB_PASSWORD }}"
+                MYSQL_ROOT_PASSWORD: "{{ APP_DB_PASSWORD }}"
+              networks:
+                - back
+              volumes:
+                - db_data:/var/lib/mysql
+            app:
+              image: "vspanasyuk/wordpress:{{ APP_VERSION }}"
+              environment:
+                WORDPRESS_DB_HOST: db
+                WORDPRESS_DB_NAME: "{{ APP_DB_NAME }}"
+                WORDPRESS_DB_USER: "{{ APP_DB_USER }}"
+                WORDPRESS_DB_PASSWORD: "{{ APP_DB_PASSWORD }}"
+              depends_on:
+                - db
+              ports:
+                - "{{ DOCKER_INTERNAL_PORT }}:80"
+              networks:
+                - front
+                - back
+              volumes:
+                - app_data:/var/www/html/wp-content
+    - name: Make sure nginx is installed
+      package:
+        name: nginx
+        state: present
 
-services:
-  db:
-    image: mysql:5.7
-    container_name: db
-    environment:
-      MYSQL_ROOT_PASSWORD: ${APP_DB_PASSWORD}
-      MYSQL_DATABASE: ${APP_DB_NAME}
-      MYSQL_USER: ${APP_DB_USER}
-      MYSQL_PASSWORD: ${APP_DB_PASSWORD}
-    networks:
-      - back
-    volumes:
-      - db_data:/var/lib/mysql
-  app:
-    image: vspanasyuk/wordpress:{###VERSION###}
-    container_name: app
-    environment: 
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_NAME: ${APP_DB_NAME}
-      WORDPRESS_DB_USER: ${APP_DB_USER}
-      WORDPRESS_DB_PASSWORD: ${APP_DB_PASSWORD}
-    depends_on:
-      - db
-    ports:
-      - 8300:80
-    networks:
-      - front
-      - back
-    volumes:
-      - app_data:/var/www/html/wp-content
+    - name: Configure nginx
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/conf.d/{{ PROJECT_URL }}.conf
+
+    - name: Check deployment
+      uri:
+        url: "http://{{ PROJECT_URL }}"
+        return_content: yes
+      register: this
+      failed_when: "'Powered by WordPress' not in this.content"
