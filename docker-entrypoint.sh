@@ -298,4 +298,6 @@ EOPHP
 	done
 fi
 
+[[ -f /var/www/html/index.php ]] && rm /var/www/html/index.php
+
 exec "$@"
