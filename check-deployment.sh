@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 for (( i=0; i<$1; i++ )); do
   if curl --silent "$2" | grep "$3" &>/dev/null; then
