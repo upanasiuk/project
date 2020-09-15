@@ -70,13 +70,3 @@
       notify:
         - Reload nginx
 
-    - name: Wait for containers become ready
-      wait_for:
-        port: "{{ DOCKER_INTERNAL_PORT }}"
-
-    - name: Check deployment
-      uri:
-        url: "http://{{ PROJECT_URL }}"
-        return_content: yes
-      register: this
-      failed_when: "'Powered by WordPress' not in this.content"
