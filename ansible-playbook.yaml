@@ -66,6 +66,17 @@
     - name: Configure nginx
       template:
         src: nginx.conf.j2
-        dest: /etc/nginx/conf.d/{{ PROJECT_URL }}.conf
+        dest: "/etc/nginx/conf.d/{{ PROJECT_URL }}.conf"
       notify:
         - Reload nginx
+
+    - name: Wait for containers become ready
+      wait_for:
+        port: "{{ DOCKER_INTERNAL_PORT }}"
+
+    - name: Check deployment
+      uri:
+        url: "http://{{ PROJECT_URL }}"
+        return_content: yes
+      register: this
+      failed_when: "'Powered by WordPress' not in this.content"
