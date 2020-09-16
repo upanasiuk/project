@@ -39,13 +39,13 @@
 #              ||          //                                         ||              #
 #              ||         //                                          ||              #
 #  ----------- Jenkins ------------          Provisioning      ---- Nginx ----        #
-# | Pull image from Docker Hub     |    ===================>  | Reverse proxy |       #
-# | Pull pipeline scripts from git |  //                       ---------------        #
-# | Start pipeline                 | //                               ||              #
-# | Send notification to Slack     |=                                 ||              #
-#  -------------------------------   \\                        ---- Docker ----       #
-#                                     \\     Provisioning     |  --- Pod ---  |       #
-#                                        ==================>  | |           | |       #
+# |                                |    ===================>  | Reverse proxy |       #
+# | Pull image from Docker Hub     |  //                       ---------------        #
+# | Pull pipeline scripts from git | //                               ||              #
+# | Start pipeline                 |=                                 ||              #
+# | Send notification to Slack     | \\                        ---- Docker ----       #
+# |                                |  \\     Provisioning     |  --- Pod ---  |       #
+# | -------------------------------      ==================>  | |           | |       #
 #                                                             | | Wordpress | |       #
 #                                                             | |   MYSQL   | |       #
 #                                                             | |           | |       #
