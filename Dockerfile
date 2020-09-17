@@ -1,5 +1,5 @@
 FROM php:7.2-apache
-ENV WORDPRESS_VERSION 5.4.2
+ENV WORDPRESS_VERSION 5.4.1
 
 # persistent dependencies
 RUN set -eux; \
